@@ -27,13 +27,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.clasedesarrollomobil.navigation.Routes
 import com.example.clasedesarrollomobil.ui.components.MenuButton
+import com.example.clasedesarrollomobil.ui.screens.acerca.AcercaDeDialog
 
 @Composable
 fun MenuScreen(
     onNavigate: (String) -> Unit,
+    onOpenTabs: () -> Unit,
     onLogout: () -> Unit
 ) {
     var showExitDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         LazyColumn(
@@ -76,10 +79,11 @@ fun MenuScreen(
                     text = option.title,
                     color = menuColors[index % menuColors.size],
                     onClick = {
-                        if (option.route == null) {
-                            showExitDialog = true
-                        } else {
-                            onNavigate(option.route)
+                        when (option.action) {
+                            MenuAction.Navigate -> onNavigate(option.route.orEmpty())
+                            MenuAction.Tabs -> onOpenTabs()
+                            MenuAction.About -> showAboutDialog = true
+                            MenuAction.Exit -> showExitDialog = true
                         }
                     }
                 )
@@ -104,30 +108,36 @@ fun MenuScreen(
             }
         )
     }
+
+    if (showAboutDialog) {
+        AcercaDeDialog(onDismiss = { showAboutDialog = false })
+    }
 }
 
 private data class MenuOption(
     val title: String,
-    val route: String?
+    val route: String? = null,
+    val action: MenuAction = MenuAction.Navigate
 )
 
 private val menuOptions = listOf(
-    MenuOption("Texto", Routes.TEXTO),
-    MenuOption("Botones", Routes.BOTONES),
-    MenuOption("Selección", Routes.SELECCION),
-    MenuOption("Listas y Colecciones", Routes.LISTAS),
-    MenuOption("Imágenes y Multimedia", Routes.MULTIMEDIA),
-    MenuOption("Barras e Indicadores", Routes.BARRAS),
-    MenuOption("Navegación", Routes.NAVEGACION),
-    MenuOption("Layout", Routes.LAYOUT),
-    MenuOption("Fecha y hora", Routes.FECHA_HORA),
-    MenuOption("Contenedores Desplazables", Routes.SCROLL),
-    MenuOption("Diálogos y Mensajes", Routes.DIALOGOS),
-    MenuOption("Material Design", Routes.MATERIAL),
-    MenuOption("Google", Routes.GOOGLE),
-    MenuOption("Acerca de", Routes.ACERCA),
-    MenuOption("Salir", null)
+    MenuOption("Calculadora", Routes.CALCULADORA),
+    MenuOption("Tomar fotografía", Routes.CAMARA),
+    MenuOption("Imágenes", Routes.IMAGENES),
+    MenuOption("Web", Routes.WEB),
+    MenuOption("Video", Routes.VIDEO),
+    MenuOption("GPS", Routes.GPS),
+    MenuOption("Pestañas", action = MenuAction.Tabs),
+    MenuOption("Acerca de", action = MenuAction.About),
+    MenuOption("Salir", action = MenuAction.Exit)
 )
+
+private enum class MenuAction {
+    Navigate,
+    Tabs,
+    About,
+    Exit
+}
 
 private val menuColors = listOf(
     Color(0xFF0F766E),
